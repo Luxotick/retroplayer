@@ -27,7 +27,7 @@ https://127.0.0.1:8888/callback
 ## Run
 
 ```bash
-node app.js
+npm start
 ```
 
 Then open:
@@ -42,6 +42,14 @@ Authorize the app, and you’ll be redirected back with tokens.
 <p align="center">
   <img src="./image1.png" alt="Screenshot" width="600" />
   <img src="./image.png" alt="Screenshot" width="600" />
+</p>
+
+## 🎬 Demo Video
+
+<p align="center">
+  <a href="https://youtu.be/ceay6gYfA_M">
+    <img src="https://img.youtube.com/vi/ceay6gYfA_M/maxresdefault.jpg" width="600" alt="Demo Video Thumbnail" />
+  </a>
 </p>
 
 ## Thanks to for making this project possible
