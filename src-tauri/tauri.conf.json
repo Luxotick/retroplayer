@@ -1,0 +1,33 @@
+{
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "frontendDist": "../"
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/Untitled.ico"
+    ]
+  },
+  "productName": "retroplayer",
+  "mainBinaryName": "retroplayer",
+  "version": "0.1.0",
+  "identifier": "com.retroplayer.app",
+  "plugins": {},
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Retro Player",
+        "width": 1440,
+        "height": 900,
+        "useHttpsScheme": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:8888 https://api.spotify.com https://sdk.scdn.co https://spclient.wg.spotify.com https://via.placeholder.com https://*.scdn.co https://*.spotifycdn.com https://platform-lookaside.fbsbx.com https://fonts.googleapis.com https://fonts.gstatic.com blob: data:;; connect-src ipc: http://ipc.localhost"
+    }
+  }
+}

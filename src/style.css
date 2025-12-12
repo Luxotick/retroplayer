@@ -1,7 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
+:root {
+    --app-bg: radial-gradient(circle at 20% 20%, #1a1a1a 0%, #0d0d0d 55%, #050505 100%);
+    --panel-bg: linear-gradient(145deg, #151515 0%, #0f0f0f 100%);
+    --panel-border: #555;
+}
+
 body {
-    background-color: #121212;
+    background: var(--app-bg);
     color: #fff;
     font-family: 'Press Start 2P', cursive;
     display: flex;
@@ -9,7 +15,31 @@ body {
     align-items: center;
     height: 100vh;
     text-align: center;
-    image-rendering: pixelated; /* Ensures images look pixelated */
+    image-rendering: pixelated;
+    /* Ensures images look pixelated */
+    transition: background 220ms ease-in-out;
+    margin: 0;
+    overflow: hidden;
+}
+
+body.paused-animations * {
+    animation-play-state: paused !important;
+    transition: none !important;
+}
+
+#app-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--app-bg);
+    z-index: 1000;
 }
 
 .hidden {
@@ -26,12 +56,14 @@ body {
 
 h1 {
     font-size: 2.5em;
-    color: #1DB954; /* Spotify Green */
+    color: #1DB954;
+    /* Spotify Green */
     text-shadow: 3px 3px 0px #000;
 }
 
 p {
-    color: #F0F; /* Magenta */
+    color: #F0F;
+    /* Magenta */
 }
 
 .login-button {
@@ -53,14 +85,40 @@ p {
     transform: translate(3px, 3px);
 }
 
+#login-loading {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 4px solid #555;
+    border-top-color: #1DB954;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    box-shadow: 0 0 10px rgba(29, 185, 84, 0.3);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* --- Player Screen --- */
 #player-container {
     display: flex;
     border: 8px solid #888;
     background-color: #222;
-    width: 1366px;
-    height: 768px;
+    width: 100%;
+    height: 100%;
     align-items: stretch;
+    box-sizing: border-box;
 }
 
 .queue-column {
@@ -97,9 +155,10 @@ p {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    background-color: #151515;
-    border: 4px solid #555;
+    background: var(--panel-bg);
+    border: 4px solid var(--panel-border, #555);
     padding: 15px;
+    transition: background 220ms ease-in-out, border-color 220ms ease-in-out;
 }
 
 .side-panel {
@@ -129,6 +188,8 @@ p {
     margin-left: 20px;
     text-align: left;
     min-width: 0;
+    flex: 1;
+    /* Allow taking available space */
 }
 
 #track-name {
@@ -143,6 +204,40 @@ p {
 #artist-name {
     font-size: 1em;
     color: #B3B3B3;
+}
+
+.like-button {
+    margin-top: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    flex-shrink: 0;
+}
+
+#like-button {
+    margin-top: 0;
+    margin-left: 15px;
+}
+
+/* Unliked state */
+.like-button {
+    background-image: url("icons/notliked.ico");
+}
+
+/* Liked state */
+.like-button.liked {
+    background-image: url("icons/liked.ico");
+}
+
+.like-button:hover {
+    transform: scale(1.1);
 }
 
 #controls {
@@ -181,6 +276,13 @@ p {
     background-color: #1DB954;
 }
 
+.time-display {
+    text-align: right;
+    font-size: 0.8em;
+    color: #B3B3B3;
+    margin-top: 5px;
+}
+
 .audio-controls {
     text-align: left;
 }
@@ -189,11 +291,323 @@ p {
     margin-bottom: 10px;
 }
 
+.volume-percent {
+    font-size: 0.8em;
+    color: #B3B3B3;
+    margin-left: 10px;
+}
+
+margin-left: 10px;
+}
+
+#lyrics-button {
+    background-color: transparent;
+    border: none;
+    color: #B3B3B3;
+    font-size: 1.2em;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+#lyrics-button.active {
+    color: #1DB954;
+}
+
+#lyrics-container {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2em;
+    scrollbar-width: none;
+}
+
+#lyrics-content p {
+    margin: 15px 0;
+    color: #888;
+    transition: color 0.2s, transform 0.2s;
+}
+
+#lyrics-content p.active {
+    color: #fff;
+    transform: scale(1.1);
+    font-weight: bold;
+}
+
+/* Lyrics Mode Layout */
+/* Compact Volume and Controls */
+/* Compact Volume and Controls (Restored Buttons) */
+#controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    gap: 15px;
+    /* Restored gap */
+}
+
+#controls button {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #535353;
+    color: #fff;
+    border: 4px solid #000;
+    padding: 10px 20px;
+    /* Restored padding */
+    margin: 0 10px;
+    font-size: 1em;
+    /* Restored font size */
+    cursor: pointer;
+    min-width: auto;
+}
+
+#controls button:hover {
+    background-color: #777;
+}
+
+.audio-controls h2 {
+    display: none;
+}
+
 .volume-controls {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 5px;
 }
+
+.volume-controls button {
+    padding: 2px 8px;
+    /* Kept compact for volume */
+    font-size: 1rem;
+}
+
+#volume-slider {
+    width: 70px;
+    /* Restored slightly */
+}
+
+/* Lyrics Mode Styles */
+
+/* Footer Container */
+#player-container.lyrics-mode .now-playing-panel {
+    flex-direction: row;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 90px;
+    padding: 5px 30px 5px 10px;
+    /* Extra padding on right (30px) to pull content in */
+    z-index: 20;
+    border-top: 4px solid #555;
+    background: #111;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 15px;
+    /* Consistent gap */
+    box-sizing: border-box;
+    /* Ensure padding is included in width */
+}
+
+/* 1. Left Group: Art + Info */
+#player-container.lyrics-mode #now-playing {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 250px;
+    margin-right: 0;
+}
+
+#player-container.lyrics-mode #album-art {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #fff;
+    object-fit: contain;
+    background: #000;
+}
+
+#player-container.lyrics-mode #track-info {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.2;
+}
+
+#player-container.lyrics-mode #track-name {
+    font-size: 0.9em;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#player-container.lyrics-mode #artist-name {
+    font-size: 0.7em;
+    white-space: nowrap;
+}
+
+#player-container.lyrics-mode .like-button {
+    width: 16px;
+    height: 16px;
+    margin-left: 5px;
+}
+
+/* 2. Controls (moved near left) */
+#player-container.lyrics-mode #controls {
+    margin: 0;
+    flex: 0 0 auto;
+    gap: 3px;
+    transform: scale(0.8);
+    /* Scale down slightly to fit better if originals are huge */
+    transform-origin: left center;
+    /* Align scaling */
+}
+
+/* 3. Progress Bar (Flexible Middle) */
+#player-container.lyrics-mode .progress-bar-container {
+    flex: 1;
+    /* Take remaining space */
+    min-width: 50px;
+    max-width: 100%;
+    /* Allow full expansion if needed */
+    height: 12px;
+    margin: 0;
+}
+
+/* 4. Time Display */
+#player-container.lyrics-mode .time-display {
+    flex: 0 0 auto;
+    font-size: 0.7em;
+    margin: 0;
+    width: auto;
+    min-width: 80px;
+    /* Prevent jitter */
+    text-align: center;
+}
+
+/* 5. Volume (Right) */
+#player-container.lyrics-mode .audio-controls {
+    margin-left: auto;
+    /* Push to end */
+    flex-shrink: 0;
+    display: flex;
+    /* Ensure contents align */
+    align-items: center;
+}
+
+#player-container.lyrics-mode .playlist-details,
+#player-container.lyrics-mode .queue-column,
+#player-container.lyrics-mode .side-panel {
+    display: none !important;
+}
+
+/* Top-Left Search Section */
+#player-container.lyrics-mode .search-section {
+    display: flex !important;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    /* Aligned to left */
+    transform: none;
+    /* Removed centering transform */
+    width: 300px;
+    /* Start smaller */
+    background: rgba(0, 0, 0, 0.9);
+    border: 4px solid #fff;
+    z-index: 50;
+    flex-direction: column;
+    padding: 15px;
+    max-height: 80vh;
+    transition: all 0.3s ease;
+}
+
+/* Minimized Search State */
+#player-container.lyrics-mode .search-section.minimized {
+    width: auto;
+    border: none;
+    background: transparent;
+    top: 20px;
+    left: 20px;
+}
+
+#player-container.lyrics-mode .search-section.minimized h2,
+#player-container.lyrics-mode .search-section.minimized #search-results {
+    display: none;
+}
+
+#player-container.lyrics-mode .search-section.minimized .search-controls {
+    background: #000;
+    border: 2px solid #555;
+    padding: 5px;
+}
+
+/* Minimize Button */
+.search-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+#minimize-search-button {
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+    cursor: pointer;
+    font-weight: bold;
+    display: none;
+}
+
+#player-container.lyrics-mode #minimize-search-button {
+    display: block;
+}
+
+#player-container.lyrics-mode .main-screen {
+    padding-bottom: 100px;
+    border: none;
+    display: flex;
+    flex-direction: column;
+}
+
+#player-container.lyrics-mode #album-art {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #fff;
+    object-fit: contain;
+    /* Prevent cutting off */
+    background: #000;
+    /* Fill gaps if any */
+}
+
+#player-container.lyrics-mode #track-name {
+    font-size: 0.9em;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#player-container.lyrics-mode #controls {
+    margin: 0;
+    transform: scale(0.9);
+    /* Slightly larger than 0.8 */
+    margin-left: -10px;
+    /* Pull closer to the left */
+}
+
+#player-container.lyrics-mode #lyrics-container {
+    display: block;
+    height: 100%;
+}
+
+#player-container.lyrics-mode .queue-column {
+    display: none;
+}
+
+
+/* Revert layout for search/queue if needed or keep them hidden */
+
 
 .volume-controls button {
     font-family: 'Press Start 2P', cursive;
@@ -247,16 +661,36 @@ p {
 }
 
 #playlist-list li {
-    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
     cursor: pointer;
-    display: block;
     position: relative;
     overflow: hidden;
-    white-space: nowrap;
+    background-color: transparent;
+    /* Default transparent or inherited */
 }
 
 #playlist-list li:hover {
     background-color: #333;
+}
+
+.playlist-item-art {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border: 2px solid #fff;
+    flex-shrink: 0;
+}
+
+#playlist-list li span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+    line-height: normal;
 }
 
 #playlist-list li.active {

@@ -1,17 +1,9 @@
-"use strict";
-
-const { webcrypto } = require("node:crypto");
-const { TextEncoder } = require("util");
-
-const crypto = webcrypto;
+// Browser compatible version
+const crypto = globalThis.crypto;
 const fetch = globalThis.fetch;
 
 if (!crypto) {
   throw new Error("Web Crypto API is unavailable in this environment");
-}
-
-if (typeof fetch !== "function") {
-  throw new Error("Global fetch is unavailable; upgrade Node.js to v18+.");
 }
 
 const TOKEN_URL = "https://open.spotify.com/api/token";
@@ -362,7 +354,7 @@ async function getRecommendSong(token, trackId) {
   }
 }
 
-module.exports = {
+export {
   getAccessToken,
   getRecommendSong
 };

@@ -1,0 +1,39 @@
+[package]
+name = "retroplayer"
+version = "0.1.0"
+description = "A Retro Spotify Player"
+authors = ["you"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+custom-protocol = ["tauri/custom-protocol"]
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+warp = "0.3"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", features = ["json", "blocking", "rustls-tls", "cookies"] }
+dotenv = "0.15"
+rand = "0.8"
+hmac = "0.12"
+sha1 = "0.10"
+base32 = "0.4"
+chrono = "0.4"
+base64 = "0.21"
+urlencoding = "2.1"
+tauri-plugin-shell = "2"
+# For CORS in warp it's built-in usually, but checking if we need anything else.
+# Warp has cors filter built-in.
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
