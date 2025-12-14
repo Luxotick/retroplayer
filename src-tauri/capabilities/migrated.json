@@ -7,7 +7,17 @@
   ],
   "permissions": [
     "core:default",
-    "shell:allow-open",
+    {
+      "identifier": "shell:allow-open",
+      "allow": [
+        {
+          "href": "http://localhost:8888/*"
+        },
+        {
+          "href": "https://accounts.spotify.com/*"
+        }
+      ]
+    },
     "shell:default"
   ]
 }

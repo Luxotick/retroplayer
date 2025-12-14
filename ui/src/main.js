@@ -148,7 +148,19 @@ class RetroSpotifyPlayer {
       // Kaydedilmiş token var mı kontrol et
       let accessToken = this.tokenManager.getAccessToken();
 
-      if (!accessToken && this.tokenManager.refreshToken) {
+      // Token var ama geçerli değilse refresh dene
+      if (accessToken && !this.tokenManager.isTokenValid()) {
+        console.log('Token expired, attempting refresh...');
+        const refreshed = await this.tokenManager.refreshAccessToken({ force: true });
+        if (refreshed) {
+          accessToken = this.tokenManager.getAccessToken();
+        } else {
+          console.log('Refresh failed, forcing login.');
+          this.handleTokenExpired();
+          return;
+        }
+      } else if (!accessToken && this.tokenManager.refreshToken) {
+        // Access token yok ama refresh token varsa refresh dene
         const refreshed = await this.tokenManager.refreshAccessToken({ force: true });
         if (refreshed) {
           accessToken = this.tokenManager.getAccessToken();

@@ -2,7 +2,7 @@
   "build": {
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
-    "frontendDist": "../"
+    "frontendDist": "../ui"
   },
   "bundle": {
     "active": true,
@@ -27,7 +27,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:8888 https://api.spotify.com https://sdk.scdn.co https://spclient.wg.spotify.com https://via.placeholder.com https://*.scdn.co https://*.spotifycdn.com https://platform-lookaside.fbsbx.com https://fonts.googleapis.com https://fonts.gstatic.com blob: data:;; connect-src ipc: http://ipc.localhost"
+      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:8888 https://api.spotify.com https://sdk.scdn.co https://spclient.wg.spotify.com https://via.placeholder.com https://*.scdn.co https://*.spotifycdn.com https://platform-lookaside.fbsbx.com https://fonts.googleapis.com https://fonts.gstatic.com blob: data:; connect-src ipc: http://ipc.localhost http://localhost:8888 https://api.spotify.com https://spclient.wg.spotify.com https://*.scdn.co https://*.spotifycdn.com"
     }
   }
 }
