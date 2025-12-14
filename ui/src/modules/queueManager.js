@@ -197,6 +197,7 @@ export class QueueManager {
     const { title, meta } = this.describeQueueItem(item);
 
     const li = document.createElement('li');
+
     if (highlight) {
       li.classList.add('current');
     }
@@ -215,16 +216,15 @@ export class QueueManager {
     }
 
     if (item?.uri) {
-      const actions = document.createElement('div');
-      actions.className = 'track-actions';
+      // Remove play button, make row clickable
+      li.addEventListener('click', () => onPlayClick?.(item.uri));
+      // Add visual cue for clickability via CSS (done in style.css)
+      li.title = "Click to play";
 
-      const playBtn = document.createElement('button');
-      playBtn.type = 'button';
-      playBtn.textContent = 'PLAY NOW';
-      playBtn.addEventListener('click', () => onPlayClick?.(item.uri));
-      actions.appendChild(playBtn);
-
-      li.appendChild(actions);
+      // Optional: keep track actions container if we want other buttons later, but for now user asked to remove play button.
+      // We can keep it empty or remove it.
+      // If we want to keep consistent layout, we might need it. 
+      // But "queue list" usually doesn't need big actions if it's just click to play.
     }
 
     return li;

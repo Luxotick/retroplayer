@@ -1011,3 +1011,73 @@ p {
     margin-bottom: 4px;
     display: block;
 }
+
+/* --- New Feature Styles --- */
+
+/* Slideable Progress Bar */
+#progress-slider {
+    width: 100%;
+    margin: 10px 0;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+/* Loop & Shuffle Buttons */
+.control-button {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.control-button:hover {
+    opacity: 1;
+}
+
+.control-button.active {
+    opacity: 1;
+    color: #1DB954; /* Green */
+    text-shadow: 0 0 5px #1DB954;
+}
+
+/* Drag & Drop Playlist Highlight */
+#playlist-list li.drag-over {
+    background-color: rgba(29, 185, 84, 0.2);
+    border: 1px dashed #1DB954;
+}
+
+/* Search Type Selector */
+.search-type-selector {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.search-type-selector label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+/* Now Playing Animation during Search */
+.now-playing-panel {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.now-playing-panel.shrunk {
+    transform: scale(0.9) translateY(-10px);
+    opacity: 0.8;
+}
+
+/* Queue List Clickable */
+.queue-list li {
+    cursor: pointer;
+}
+
+.queue-list li:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}

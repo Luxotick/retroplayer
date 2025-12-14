@@ -15,6 +15,7 @@ export class PlaylistManager {
     this.callbacks = callbacks;
     this.currentPlaylist = null;
     this.selectedPlaylistElement = null;
+    this.allPlaylists = []; // Store for filtering
   }
 
   /**
@@ -44,8 +45,12 @@ export class PlaylistManager {
       }
 
       const playlists = await response.json();
-      this.renderPlaylists(playlists);
-      return playlists;
+      this.allPlaylists = playlists.items || playlists; // Handle paginated object or array
+      // If paged, items is correct.
+      if (playlists.items) this.allPlaylists = playlists.items;
+
+      this.renderPlaylists(this.allPlaylists);
+      return this.allPlaylists;
     } catch (error) {
       console.error('Unable to fetch playlists:', error);
       this.uiHelpers.removeMarqueeTargetsWithin(playlistList);
@@ -68,7 +73,7 @@ export class PlaylistManager {
     }
 
     this.uiHelpers.removeMarqueeTargetsWithin(playlistList);
-    playlistList.innerHTML = ''; // Listeyi oluştur
+    playlistList.innerHTML = '';
     playlists.forEach(playlist => {
       if (!playlist) return;
 
@@ -86,15 +91,19 @@ export class PlaylistManager {
       span.textContent = playlist.name || 'Untitled Playlist';
       li.appendChild(span);
 
-      this.uiHelpers.markMarqueeTarget(span); // Mark span for marquee
+      this.uiHelpers.markMarqueeTarget(span);
 
       li.addEventListener('click', () => {
-        this.selectPlaylist(playlist, li); // Pass full playlist object
+        this.selectPlaylist(playlist, li);
       });
 
       playlistList.appendChild(li);
     });
   }
+
+
+
+
 
   /**
    * Playlist seç

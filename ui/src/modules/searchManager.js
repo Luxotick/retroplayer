@@ -13,7 +13,7 @@ export class SearchManager {
   }
 
   /**
-   * Track'leri ara
+   * Track/Album'leri ara
    */
   async searchTracks(query) {
     const { searchResultsList } = DOMElements;
@@ -28,23 +28,13 @@ export class SearchManager {
     }
 
     this.uiHelpers.removeMarqueeTargetsWithin(searchResultsList);
-    // Don't clear immediately to prevent button flickering
-    // searchResultsList.innerHTML = '<li>Searching…</li>';
 
-    // Maybe show a dedicated loader or just opacity, but for now keeping old results until new ones arrive is better UX logic for this request.
-    // If user prefers visual feedback:
     if (searchResultsList.children.length === 0) {
       searchResultsList.innerHTML = '<li>Searching…</li>';
-    } else {
-      // Indicate loading without destroying layout
-      const loadingItem = document.createElement('li');
-      loadingItem.textContent = 'Searching...';
-      loadingItem.className = 'loading-indicator'; // You might want to style this
-      // Or just do nothing visual until results update
     }
 
     try {
-      const response = await fetch(`${URLS.SERVER_URL}/search?q=${encodeURIComponent(trimmedQuery)}`, {
+      const response = await fetch(`${URLS.SERVER_URL}/search?q=${encodeURIComponent(trimmedQuery)}&type=track`, {
         headers: {
           Authorization: `Bearer ${this.tokenManager.getAccessToken()}`
         }
@@ -54,11 +44,15 @@ export class SearchManager {
         throw new Error(`Server responded with ${response.status}`);
       }
 
-      const tracks = await response.json();
-      this.renderSearchResults(tracks);
+      const data = await response.json();
+
+      // Handle both Spotify API format and simplified backend format
+      const tracks = Array.isArray(data) ? data : (data.tracks?.items || []);
+
+      // Return tracks to caller (main.js) for rendering with callbacks
       return tracks;
     } catch (error) {
-      console.error('Unable to search tracks:', error);
+      console.error('Unable to search:', error);
       this.uiHelpers.removeMarqueeTargetsWithin(searchResultsList);
       searchResultsList.innerHTML = '<li class="error">Search failed. Try again later.</li>';
       return [];
@@ -88,7 +82,7 @@ export class SearchManager {
   /**
    * Arama sonuçlarını render et
    */
-  async renderSearchResults(tracks, callbacks = {}) {
+  async renderSearchResults(items, callbacks = {}) {
     const { searchResultsList } = DOMElements;
     if (!searchResultsList) return;
 
@@ -96,46 +90,49 @@ export class SearchManager {
 
     this.uiHelpers.removeMarqueeTargetsWithin(searchResultsList);
 
-    if (!Array.isArray(tracks) || tracks.length === 0) {
+    if (!Array.isArray(items) || items.length === 0) {
       searchResultsList.innerHTML = '<li>No results found.</li>';
       return;
     }
 
-    // Batch check liked status
-    const trackIds = tracks.map(t => t.id).filter(Boolean);
+    const trackIds = items.map(t => t.id).filter(Boolean);
     const likedStatuses = await this.checkSavedTracks(trackIds);
 
     searchResultsList.innerHTML = '';
 
-    tracks.forEach((track, index) => {
-      if (!track) return;
+    items.forEach((item, index) => {
+      if (!item) return;
 
       const li = document.createElement('li');
 
       const titleEl = document.createElement('div');
       titleEl.className = 'track-title';
-      titleEl.textContent = track.name || 'Unknown Track';
+      titleEl.textContent = item.name || 'Unknown';
       li.appendChild(titleEl);
       this.uiHelpers.markMarqueeTarget(titleEl);
 
       const metaEl = document.createElement('div');
       metaEl.className = 'track-meta';
-      const artistNames = Array.isArray(track.artists)
-        ? track.artists.map(artist => artist.name).filter(Boolean).join(', ')
+      const artistNames = Array.isArray(item.artists)
+        ? item.artists.map(artist => artist.name).filter(Boolean).join(', ')
         : 'Unknown Artist';
-      const albumName = track.album?.name || 'Unknown Album';
-      const duration = this.uiHelpers.formatDuration(track.duration_ms);
+      const albumName = item.album?.name || 'Unknown Album';
+      const duration = this.uiHelpers.formatDuration(item.duration_ms);
       metaEl.textContent = `${artistNames} • ${albumName} • ${duration}`;
       li.appendChild(metaEl);
 
       const actions = document.createElement('div');
       actions.className = 'track-actions';
 
+      // PLAY Button
       if (typeof onPlay === 'function') {
         const playBtn = document.createElement('button');
         playBtn.textContent = 'PLAY';
         playBtn.type = 'button';
-        playBtn.addEventListener('click', () => onPlay(track));
+        playBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          onPlay(item);
+        });
         actions.appendChild(playBtn);
       }
 
@@ -143,7 +140,10 @@ export class SearchManager {
         const queueBtn = document.createElement('button');
         queueBtn.textContent = 'QUEUE';
         queueBtn.type = 'button';
-        queueBtn.addEventListener('click', () => onQueue(track));
+        queueBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          onQueue(item);
+        });
         actions.appendChild(queueBtn);
       }
 
@@ -161,7 +161,7 @@ export class SearchManager {
         likeBtn.addEventListener('click', async (e) => {
           e.stopPropagation();
           const currentLiked = likeBtn.classList.contains('liked');
-          const success = await onLike(track, currentLiked);
+          const success = await onLike(item, currentLiked);
           if (success) {
             if (currentLiked) {
               likeBtn.classList.remove('liked');
@@ -169,11 +169,6 @@ export class SearchManager {
             } else {
               likeBtn.classList.add('liked');
               likeBtn.setAttribute('aria-label', 'Unlike Song');
-            }
-
-            // Sync with main player if this track is currently playing
-            if (typeof callbacks.onLikeSync === 'function') {
-              callbacks.onLikeSync(track.id, !currentLiked);
             }
           }
         });

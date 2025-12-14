@@ -263,6 +263,10 @@ export class PlayerController {
     }
   }
 
+
+
+
+
   /**
    * Seek işlemi
    */

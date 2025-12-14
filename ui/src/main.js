@@ -249,6 +249,7 @@ class RetroSpotifyPlayer {
 
     // Kuyruk kontrolleri
     this.setupQueueControls();
+
   }
 
   /**
@@ -300,21 +301,68 @@ class RetroSpotifyPlayer {
     }
 
     if (progressBarContainer) {
-      progressBarContainer.addEventListener('click', async (event) => {
-        if (!this.playerController.player) return;
+      // Dragging state
+      let isDragging = false;
 
+      // Helper to calculate progress from mouse event
+      const getProgressFromEvent = (event) => {
         const rect = progressBarContainer.getBoundingClientRect();
-        const clickPosition = Math.max(0, event.clientX - rect.left);
-        const percent = rect.width === 0 ? 0 : clickPosition / rect.width;
+        const clientX = event.clientX || (event.touches ? event.touches[0].clientX : 0);
+        const clickPosition = Math.max(0, Math.min(clientX - rect.left, rect.width));
+        return rect.width === 0 ? 0 : clickPosition / rect.width;
+      };
 
+      // Mousedown: Start dragging and update immediately
+      progressBarContainer.addEventListener('mousedown', async (event) => {
+        if (!this.playerController.player) return;
+        isDragging = true;
+
+        // Disable text selection during drag
+        document.body.style.userSelect = 'none';
+
+        const percent = getProgressFromEvent(event);
         const state = await this.playerController.getCurrentState();
         if (state && typeof state.duration === 'number') {
           const seekPosition = Math.floor(state.duration * percent);
-          await this.playerController.seek(seekPosition);
+          // Visual update only while dragging
           this.uiHelpers.updateProgress({ duration: state.duration, position: seekPosition });
         }
       });
+
+      // Global Mousemove: Update visual progress if dragging
+      document.addEventListener('mousemove', async (event) => {
+        if (!isDragging) return;
+        event.preventDefault();
+
+        const percent = getProgressFromEvent(event);
+        // We need state for duration. 
+        // OPTIMIZATION: Cache duration on mousedown to avoid async delay during drag?
+        // For now, fetching state valid checks are fast enough locally.
+        const state = await this.playerController.getCurrentState();
+        if (state && typeof state.duration === 'number') {
+          const seekPosition = Math.floor(state.duration * percent);
+          this.uiHelpers.updateProgress({ duration: state.duration, position: seekPosition });
+        }
+      });
+
+      // Global Mouseup: Finalize seek
+      document.addEventListener('mouseup', async (event) => {
+        if (!isDragging) return;
+        isDragging = false;
+        document.body.style.userSelect = '';
+
+        const percent = getProgressFromEvent(event);
+        const state = await this.playerController.getCurrentState();
+
+        if (state && typeof state.duration === 'number') {
+          const seekPosition = Math.floor(state.duration * percent);
+          console.log(`[Main] Seeking to ${seekPosition}ms`);
+          await this.playerController.seek(seekPosition);
+        }
+      });
     }
+
+
   }
 
   /**
@@ -335,32 +383,39 @@ class RetroSpotifyPlayer {
 
     if (searchButton) {
       searchButton.addEventListener('click', async () => {
+        console.log('[Main] Search clicked');
         // Expand if minimized
         if (searchSection && searchSection.classList.contains('minimized')) {
           searchSection.classList.remove('minimized');
         }
 
         const query = searchInput?.value || '';
-        const tracks = await this.searchManager.searchTracks(query);
-        await this.searchManager.renderSearchResults(tracks, {
-          onPlay: (track) => this.playTrackOrRecommendation(track),
-          onQueue: (track) => this.queueManager.addTrackToQueue(track),
-          onLike: async (track, isLiked) => {
-            return await this.playerController.toggleLike(track.id, isLiked);
-          },
-          onLikeSync: (trackId, isLiked) => {
-            // If the liked track is the currently playing one, update the main player UI
-            const state = this.playerController.player ?
-              // Note: we can't synchronously get state here easily without async, 
-              // but we can check the UIHelpers current state if we stored it, or just blindly update if ID matches.
-              // Better approach: Check if DOMElements.trackNameEl has this track title (inexact) OR save current ID in main.
-              null : null;
+        console.log(`[Main] Searching for: "${query}"`);
 
-            if (this.lastTrackId && (this.lastTrackId === trackId)) {
-              this.uiHelpers.updateLikeButton(isLiked);
+        try {
+          const tracks = await this.searchManager.searchTracks(query);
+          await this.searchManager.renderSearchResults(tracks, {
+            onPlay: (track) => this.playTrackOrRecommendation(track),
+            onQueue: (track) => this.queueManager.addTrackToQueue(track),
+            onLike: async (track, isLiked) => {
+              return await this.playerController.toggleLike(track.id, isLiked);
+            },
+            onLikeSync: (trackId, isLiked) => {
+              // If the liked track is the currently playing one, update the main player UI
+              const state = this.playerController.player ?
+                // Note: we can't synchronously get state here easily without async, 
+                // but we can check the UIHelpers current state if we stored it, or just blindly update if ID matches.
+                // Better approach: Check if DOMElements.trackNameEl has this track title (inexact) OR save current ID in main.
+                null : null;
+
+              if (this.lastTrackId && (this.lastTrackId === trackId)) {
+                this.uiHelpers.updateLikeButton(isLiked);
+              }
             }
-          }
-        });
+          });
+        } catch (error) {
+          console.error('[Main] Search failed:', error);
+        }
       });
     }
 
@@ -395,6 +450,8 @@ class RetroSpotifyPlayer {
     }
 
     this.playlistManager.closePlaylistDetails();
+
+
   }
 
   /**
