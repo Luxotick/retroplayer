@@ -175,6 +175,16 @@ class RetroSpotifyPlayer {
         return;
       }
 
+      // Ensure refresh is scheduled if we have a valid token
+      if (this.tokenManager.isTokenValid()) {
+        if (!this.tokenManager.expiresAt) {
+          console.log('Token expiry unknown, refreshing to establish cycle...');
+          await this.tokenManager.refreshAccessToken({ force: true });
+        } else {
+          this.tokenManager.scheduleTokenRefresh();
+        }
+      }
+
       // Uygulamayı başlat
       this.setupUI();
       await this.initializePlayer(accessToken);
